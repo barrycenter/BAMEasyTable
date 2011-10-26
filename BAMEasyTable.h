@@ -83,7 +83,7 @@ typedef enum {
     NSMutableArray *source, *searchResult;
     UIColor *searchHeaderColor, *topBoundsViewColor;
     UILabel *countLabel;
-    UISearchDisplayController *searchDisplayController;
+    UISearchDisplayController *searchController;
     
     BAMEasyTableSectionHeaderType sectionHeaderType;
     BAMEasyTableSectionFooterType sectionFooterType;
@@ -129,25 +129,36 @@ typedef enum {
 
 @protocol BAMEasyTableDelegate <NSObject>
 @optional
-- (CGFloat)bamEasyTable:(BAMEasyTable *)easyTable heightForCellWithObject:(id)selectedObject;
-- (void)bamEasyTable:(BAMEasyTable *)easyTable accessoryButtonTappedForRowWithObject:(id)selectedObject;
-- (NSString *)bamEasyTable:(BAMEasyTable *)easyTable titleForDeleteConfirmationButtonForRowWithObject:(id)selectedObject;
+
 - (void)bamEasyTable:(BAMEasyTable *)easyTable didSelectObject:(id)selectedObject;
 - (void)bamEasyTable:(BAMEasyTable *)easyTable didDeselectObject:(id)deselectedObject;
-- (void)bamEasyTable:(BAMEasyTable *)easyTable didRemoveItemAtIndexPath:(NSIndexPath *)indexPath;
-- (void)bamEasyTable:(BAMEasyTable *)easyTable didRemoveSection:(NSUInteger)section;
-- (void)bamEasyTableAddButtonPressed:(BAMEasyTable *)easyTable;
+
+
 - (void)bamEasyTable:(BAMEasyTable *)easyTable cellForCustomization:(UITableViewCell *)cell withObject:(id)currentObject;
 - (UITableViewCell *)bamEasyTable:(BAMEasyTable *)easyTable cellForObject:(id)currentObject;
+- (CGFloat)bamEasyTable:(BAMEasyTable *)easyTable heightForCellWithObject:(id)selectedObject;
+- (NSString *)bamEasyTable:(BAMEasyTable *)easyTable titleForDeleteConfirmationButtonForRowWithObject:(id)selectedObject;
+
+
+- (void)bamEasyTableAddButtonPressed:(BAMEasyTable *)easyTable;
+- (void)bamEasyTable:(BAMEasyTable *)easyTable accessoryButtonTappedForRowWithObject:(id)selectedObject;
+
+
+
+- (void)bamEasyTable:(BAMEasyTable *)easyTable didRemoveItemAtIndexPath:(NSIndexPath *)indexPath;
+- (void)bamEasyTable:(BAMEasyTable *)easyTable movedRowFromIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath;
+- (BOOL)bamEasyTable:(BAMEasyTable *)easyTable canEditRowAtIndexPath:(NSIndexPath *)indexPath;
+- (BOOL)bamEasyTable:(BAMEasyTable *)easyTable canMoveRowAtIndexPath:(NSIndexPath *)indexPath;
+
+
+- (BOOL)bamEasyTable:(BAMEasyTable *)easyTable canRemoveSection:(NSUInteger)section;
+- (void)bamEasyTable:(BAMEasyTable *)easyTable didRemoveSection:(NSUInteger)section;
+
 
 - (CGFloat)bamEasyTable:(BAMEasyTable *)easyTable heightForHeaderInSection:(NSInteger)section;
 - (UIView *)bamEasyTable:(BAMEasyTable *)easyTable viewForHeaderInSection:(NSInteger)section withTitle:(NSString *)title;
 - (CGFloat)bamEasyTable:(BAMEasyTable *)easyTable heightForFooterInSection:(NSInteger)section;
 - (UIView *)bamEasyTable:(BAMEasyTable *)easyTable viewForFooterInSection:(NSInteger)section withTitle:(NSString *)title;
-- (BOOL)bamEasyTable:(BAMEasyTable *)easyTable canEditRowAtIndexPath:(NSIndexPath *)indexPath;
-- (BOOL)bamEasyTable:(BAMEasyTable *)easyTable canRemoveSection:(NSUInteger)section;
-- (BOOL)bamEasyTable:(BAMEasyTable *)easyTable canMoveRowAtIndexPath:(NSIndexPath *)indexPath;
-- (void)bamEasyTable:(BAMEasyTable *)easyTable movedRowFromIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath;
 
 
 @end

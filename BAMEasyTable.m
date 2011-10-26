@@ -36,7 +36,8 @@
 
 #import "BAMEasyTable.h"
 
-@interface BAMEasyTable (Private)
+@interface BAMEasyTable () 
+@property (nonatomic, retain) UISearchDisplayController *searchController;
 - (void)setDefaultValues;
 - (void)loadTable;
 - (void)scrollToTop;
@@ -66,6 +67,7 @@
 @synthesize indexType;
 @synthesize cellStyle;
 
+@synthesize searchController;
 
 - (id)init {
     if ((self = [super init])) {
@@ -98,7 +100,11 @@
     [searchHeaderColor release];
     [topBoundsViewColor release];
     [countLabel release];
-    [searchDisplayController release];
+    
+    self.searchController.delegate = nil;
+    self.searchController.searchResultsDataSource = nil;
+    self.searchController.searchResultsDelegate = nil;
+    [self.searchController release];
     
     [super dealloc];
 }
@@ -356,12 +362,10 @@
     
     self.tableView.tableHeaderView = searchBar;
     
-    searchDisplayController = [[UISearchDisplayController alloc] initWithSearchBar:searchBar contentsController:self];
-    searchDisplayController.delegate = self;
-    searchDisplayController.searchResultsDataSource = self;
-    searchDisplayController.searchResultsDelegate = self;
-    
-    [self performSelector:@selector(setSearchDisplayController:) withObject:searchDisplayController];
+    searchController = [[UISearchDisplayController alloc] initWithSearchBar:searchBar contentsController:self];
+    self.searchController.delegate = self;
+    self.searchController.searchResultsDataSource = self;
+    self.searchController.searchResultsDelegate = self;
 }
 
 - (void)createCountLabel {
@@ -427,7 +431,7 @@
 #pragma mark - UITableViewDataSource Methods
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    if (tableView == self.searchDisplayController.searchResultsTableView) {
+    if (tableView == self.searchController.searchResultsTableView) {
         if ([searchResult count] > 0) return 1;
         else return 0;
     } else {
@@ -436,7 +440,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (tableView == self.searchDisplayController.searchResultsTableView) {
+    if (tableView == self.searchController.searchResultsTableView) {
         return [searchResult count];
     } else {
         return [[source objectAtIndex:section] count];
@@ -445,7 +449,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     NSObject *currentObject;
-    if (tableView == self.searchDisplayController.searchResultsTableView) currentObject = [searchResult objectAtIndex:indexPath.row];
+    if (tableView == self.searchController.searchResultsTableView) currentObject = [searchResult objectAtIndex:indexPath.row];
     else currentObject = [[source objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
     
     UITableViewCell *delegateCell = nil; 
@@ -508,7 +512,7 @@
 }
 
 - (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView {
-    if (indexTitles == nil || tableView == self.searchDisplayController.searchResultsTableView || indexType == BAMEasyTableIndexTypeNeverShow || (indexType == BAMEasyTableIndexTypeThreshold && [self count] < indexThreshold)) {
+    if (indexTitles == nil || tableView == self.searchController.searchResultsTableView || indexType == BAMEasyTableIndexTypeNeverShow || (indexType == BAMEasyTableIndexTypeThreshold && [self count] < indexThreshold)) {
         return nil;
     } else {
         if (allowSearching) {
@@ -537,17 +541,19 @@
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section  {
-    if (!(section < [headerTitles count]) || tableView == self.searchDisplayController.searchResultsTableView || sectionHeaderType == BAMEasyTableSectionHeaderTypeNeverShow || (sectionHeaderType == BAMEasyTableSectionHeaderTypeThreshold && [self count] < sectionHeaderThreshold)) return @"";
+    if (!(section < [headerTitles count]) || tableView == self.searchController.searchResultsTableView || sectionHeaderType == BAMEasyTableSectionHeaderTypeNeverShow || (sectionHeaderType == BAMEasyTableSectionHeaderTypeThreshold && [self count] < sectionHeaderThreshold)) return nil;
     else return [headerTitles objectAtIndex:section];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section  {
-    if (!(section < [footerTitles count]) || tableView == self.searchDisplayController.searchResultsTableView || sectionFooterType == BAMEasyTableSectionFooterTypeNeverShow || (sectionFooterType == BAMEasyTableSectionFooterTypeThreshold && [self count] < sectionFooterThreshold)) return @"";
+    if (!(section < [footerTitles count]) || tableView == self.searchController.searchResultsTableView || sectionFooterType == BAMEasyTableSectionFooterTypeNeverShow || (sectionFooterType == BAMEasyTableSectionFooterTypeThreshold && [self count] < sectionFooterThreshold)) return nil;
     else return [footerTitles objectAtIndex:section];
 }
 
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (!(section < [headerTitles count]) || tableView == self.searchController.searchResultsTableView || sectionHeaderType == BAMEasyTableSectionHeaderTypeNeverShow || (sectionHeaderType == BAMEasyTableSectionHeaderTypeThreshold && [self count] < sectionHeaderThreshold)) return 0;
+    
     if (self.delegate != nil && [self.delegate respondsToSelector:@selector(bamEasyTable:heightForHeaderInSection:)]) {
         return [self.delegate bamEasyTable:self heightForHeaderInSection:section];
     } else {
@@ -557,6 +563,8 @@
 
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    if (!(section < [headerTitles count]) || tableView == self.searchController.searchResultsTableView || sectionHeaderType == BAMEasyTableSectionHeaderTypeNeverShow || (sectionHeaderType == BAMEasyTableSectionHeaderTypeThreshold && [self count] < sectionHeaderThreshold)) return nil;
+    
     if (self.delegate != nil && [self.delegate respondsToSelector:@selector(bamEasyTable:viewForHeaderInSection:withTitle:)]) {
         if (headerTitles != nil) {
             return [self.delegate bamEasyTable:self viewForHeaderInSection:section withTitle:[headerTitles objectAtIndex:section]];
@@ -569,6 +577,8 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    if (!(section < [footerTitles count]) || tableView == self.searchController.searchResultsTableView || sectionFooterType == BAMEasyTableSectionFooterTypeNeverShow || (sectionFooterType == BAMEasyTableSectionFooterTypeThreshold && [self count] < sectionFooterThreshold)) return 0;
+    
     if (self.delegate != nil && [self.delegate respondsToSelector:@selector(bamEasyTable:heightForFooterInSection:)]) {
         return [self.delegate bamEasyTable:self heightForFooterInSection:section];
     } else {
@@ -578,6 +588,8 @@
 
 
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    if (!(section < [footerTitles count]) || tableView == self.searchController.searchResultsTableView || sectionFooterType == BAMEasyTableSectionFooterTypeNeverShow || (sectionFooterType == BAMEasyTableSectionFooterTypeThreshold && [self count] < sectionFooterThreshold)) return nil;
+    
     if (self.delegate != nil && [self.delegate respondsToSelector:@selector(bamEasyTable:viewForFooterInSection:withTitle:)]) {
         if (footerTitles != nil) {
             return [self.delegate bamEasyTable:self viewForFooterInSection:section withTitle:[footerTitles objectAtIndex:section]];
@@ -619,7 +631,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSObject *selectedObject;
-    if (tableView == self.searchDisplayController.searchResultsTableView) {
+    if (tableView == self.searchController.searchResultsTableView) {
         selectedObject = [searchResult objectAtIndex:indexPath.row];
     } else {
         selectedObject = [[source objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
@@ -632,7 +644,7 @@
 
 - (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSObject *deselectedObject;
-    if (tableView == self.searchDisplayController.searchResultsTableView) {
+    if (tableView == self.searchController.searchResultsTableView) {
         deselectedObject = [searchResult objectAtIndex:indexPath.row];
     } else {
         deselectedObject = [[source objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
